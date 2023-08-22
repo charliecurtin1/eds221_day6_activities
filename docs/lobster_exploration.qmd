@@ -1,0 +1,101 @@
+---
+title: "lobster exploration"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+```
+
+```{r}
+lobsters <- read_csv(here("data", "Lobster_Abundance_All_Years_20210412.csv"), 
+                     na = c("-99999", "")) %>%
+  clean_names() %>% 
+  uncount(count)
+
+# dplyr::uncount()
+```
+
+```{r}
+# create a summary table that finds the total counts and mean carapace lengths of lobsters in the observed dataset by site and year
+
+mean_lengths_site_year <- lobsters %>% 
+  group_by(site, year) %>% 
+  summarize(mean_size = mean(size_mm, na.rm = TRUE), n=n())
+# n=n(), used within summarize, gives the count 
+
+# create a ggplot graph of the number of total lobsters observed (y-axis) by year in the study, grouped by site
+
+ggplot(data = mean_lengths_site_year,
+       aes(x = year, y = n)) +
+  geom_point(aes(color = site))
+```
+
+## Find the proportion of legal lobsters at each site for 2020
+
+```{r}
+# create a subset that only contains lobster data from 2020
+lobsters_2020 <- lobsters %>% 
+  filter(year == 2020)
+
+# find the counts of lobsters observed at each site that are above and below the legal limit
+lobsters_legal <- lobsters_2020 %>% 
+  mutate(legal = case_when(
+    size_mm > 79.76 ~ "yes",
+    TRUE ~ "no"
+  ))
+
+legal_counts <- lobsters_legal %>% 
+  group_by(site, legal) %>% 
+  summarize(n = n())
+
+legal_counts_tidy <- legal_counts %>% 
+  pivot_wider(names_from = legal, values_from = n)
+```
+
+```{r}
+# create a stacked column graph that shows the proportion of legal and non-legal lobsters at each site 
+
+ggplot(data = legal_counts,
+       aes(x = site, y = n, color = legal)) +
+  geom_col(position = "fill")
+```
+
+## filter() practice
+
+```{r}
+# create and store a subset that only contains lobsters from sites IVEE, CARP, and NAPL
+
+lobsters_subset1 <- lobsters %>% 
+  filter(site %in% c("IVEE", "CARP", "NAPL"))
+
+# create a subset that only contains lobsters observed in August
+lobsters_subset2 <- lobsters %>% 
+  filter(month == 8)
+
+# create a subset with lobsters at Arroyo Quemado (AQUE) or with a carapace length greater than 70 mm
+lobsters_subset3 <- lobsters %>% 
+  filter(site == "AQUE", size_mm > 70)
+
+# create a subset that does NOT include observations from Naples Reef (NAPL)
+lobsters_subset4 <- lobsters %>% 
+  filter(site != "NAPL")
+```
+
+## group_by() %\>% summarize() practice 
+
+```{r}
+# find the mean and standard deviation of lobster carapace length, grouped by site
+lobsters_subset5 <- lobsters %>% 
+  group_by(site) %>% 
+  summarize(mean_size = mean(size_mm, na.rm = TRUE),
+            sd_size = sd(size_mm, na.rm = TRUE))
+
+# find the maximum carapace length by site and month.
+lobsters_subset6 <- lobsters %>% 
+  group_by(site, month) %>% 
+  summarize(max_length = )
+```

@@ -85,7 +85,7 @@ lobsters_subset4 <- lobsters %>%
   filter(site != "NAPL")
 ```
 
-## group_by() %\>% summarize() practice 
+## group_by() %\>% summarize() practice
 
 ```{r}
 # find the mean and standard deviation of lobster carapace length, grouped by site
@@ -97,5 +97,36 @@ lobsters_subset5 <- lobsters %>%
 # find the maximum carapace length by site and month.
 lobsters_subset6 <- lobsters %>% 
   group_by(site, month) %>% 
-  summarize(max_length = )
+  summarize(max_length = max(size_mm))
+```
+
+### mutate() practice
+
+```{r}
+# add a new column that contains lobster carapace length converted to centimeters
+mutate(lobsters, size_cm = size_mm / 10)
+
+# update the site column to all lowercase
+mutate(lobsters, site = str_to_lower(site))
+
+# convert the area column to a character
+lobsters <- mutate(lobsters, area = as.character(area))
+```
+
+## case_when() practice
+
+```{r}
+# use case_when() to add a new column called size_bin that contains "small" when carapace size is <= 70 mm, or "large" if it is greater than 70 mm
+
+lobsters <- lobsters %>% 
+  mutate(size_bin = case_when(
+    size_mm <= 70 ~ "small",
+    size_mm > 70 ~ "large"
+  ))
+
+lobsters <- lobsters %>% 
+  mutate(designation = case_when(
+    site %in% c("IVEE", "NAPL") ~ "MPA",
+    TRUE ~ "not MPA"
+  ))
 ```
